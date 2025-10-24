@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'com.maxgamertyper1'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.json:json:20240303'
+}
+
+tasks.named('shadowJar') {
+    archiveBaseName.set('ImageToUnicodeV2')
+    archiveClassifier.set('')
+    archiveVersion.set(version)
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.maxgamertyper1.Main'
+        )
+    }
+}
