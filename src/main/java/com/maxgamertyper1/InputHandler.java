@@ -6,20 +6,21 @@ import java.util.Scanner;
 
 public class InputHandler {
     private boolean calculateDatatable;
-    private File imageFile = null;
+    private File inputFile = null;
+    private final boolean isImageFile;
     private File fontFile = null;
     private File datatableFile = null;
     private final File dataDirectory = new File("data");
     private final File inputsDirectory = new File("data/inputs");
     private final File outputsDirectory = new File("data/outputs");
-    private Boolean conversionTypeIsInvert;
+    private final Boolean conversionTypeIsInvert;
 
 
     public InputHandler(Scanner scanner) {
         // try to make the data folders
         createFolders();
-        // get the font file
-        imageFile=attemptGetFile("What's the name of the image file? (should be in data/inputs) ex: banana.png or apple.jpg",scanner);
+
+        System.out.println("You will be asked for your input file at the end.");
 
         // check if the user has already generated a datatable
         datatableSetup(scanner); // sets the datatableJSON if they say no
@@ -33,6 +34,44 @@ public class InputHandler {
         String userInput = scanner.nextLine();
 
         conversionTypeIsInvert = userInput.equalsIgnoreCase("false") ? Boolean.FALSE : userInput.equalsIgnoreCase("true") ? Boolean.TRUE : null;
+
+        System.out.println("Will you be converting an image file? (False means you are using a video file) [True,False, default:true]");
+        isImageFile=!scanner.nextLine().equalsIgnoreCase("false");
+
+        if (isImageFile) {
+            inputFile = attemptGetFile("What's the name of the image file? (should be in data/inputs) ex: banana.png or apple.jpg",scanner);
+            String fileExtension = getFileExtension(inputFile);
+            System.out.println(fileExtension);
+            if (!(fileExtension.equals("png") || fileExtension.equals("jpg"))) {
+                System.out.println("Wrong file type, this might be a video file or an unsupported type!");
+                System.exit(0);
+            }
+        } else {
+            inputFile = attemptGetFile("What's the name of the video file? (should be in data/inputs) ex: banana.mp4 or apple.mp4",scanner);
+            if (!getFileExtension(inputFile).equals("mp4")) {
+                System.out.println("Wrong file type, this might be a image file or an unsupported type!");
+                System.exit(0);
+            }
+        }
+
+    }
+
+    public static String getFileExtension(File file) {
+        String fileName = file.getName();
+
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex == -1 || dotIndex == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(dotIndex + 1);
+    }
+
+    public static String getFileName(String filePath) {
+        int dotIndex = filePath.lastIndexOf('.');
+        if (dotIndex == -1 || dotIndex == filePath.length() - 1) {
+            return "";
+        }
+        return filePath.substring(0,dotIndex);
     }
 
     public File attemptGetFile(String printText, Scanner scanner) {
@@ -52,6 +91,11 @@ public class InputHandler {
 
         return resultingFile;
     }
+
+    public boolean IsInputImage() {
+        return isImageFile;
+    }
+
 
 
     public void createFolders() {
@@ -97,7 +141,7 @@ public class InputHandler {
 
     public HashMap<String,File> getFiles() {
         final HashMap<String,File> returnMap = new HashMap<String,File>();
-        returnMap.put("imageFile",imageFile);
+        returnMap.put("inputFile",inputFile);
         returnMap.put("fontFile",fontFile);
         returnMap.put("datatableFile",datatableFile);
         return returnMap; // return a map of the font and image files

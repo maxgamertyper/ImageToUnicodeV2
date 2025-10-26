@@ -1,10 +1,12 @@
 package com.maxgamertyper1;
 
+import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -67,7 +69,7 @@ public class Main {
 
 
             int dotIndex = fontName.lastIndexOf('.');
-            if (dotIndex > 0) { // make sure there is a dot
+            if (dotIndex > 0) {
                 fontName = fontName.substring(0, dotIndex);
             }
 
@@ -84,22 +86,77 @@ public class Main {
 
         OutputHandler outputHandler = new OutputHandler(conversionType,scanner);
 
+        if (inputHandler.IsInputImage()) {
+            ImageConversion(conversionType,importantFiles.get("inputFile"),step,datatableHandler,outputHandler);
+        } else  {
+            VideoConversion(conversionType,importantFiles.get("inputFile"),step,datatableHandler,outputHandler);
+        }
 
-        int[][] brightness = null;
-        String[][] mapped = null;
-        ImageReader imageHandler = new ImageReader(importantFiles.get("imageFile"));
-        brightness = imageHandler.ImageToPixelBrightness(step);
-        if (conversionType!=Boolean.TRUE) {
-            mapped = datatableHandler.ValueTranslation(brightness, false);
-            Files.writeString(Path.of(outputHandler.GetNormalFilePath()), ListToString(mapped));
-        }
-        if (conversionType!=Boolean.FALSE) {
-            mapped = datatableHandler.ValueTranslation(brightness, true);
-            Files.writeString(Path.of(outputHandler.GetInvertedFilePath()), ListToString(mapped));
-        }
 
         System.out.println("Completed!");
         System.out.println("Make sure to change the notepad or whatever text editor your using's font for the files. Otherwise, it will look weird and wrong");
+    }
+
+    public static void ImageConversion(Boolean conversionType, File inputFile, int step, DatatableHandler datatableHandler, OutputHandler outputHandler) {
+        HashMap<String,String[][]> imageData = ConvertImage(conversionType,inputFile,step,datatableHandler);
+        SaveImage(imageData,outputHandler);
+    }
+
+    public static void VideoConversion(Boolean conversionType, File inputFile, int step, DatatableHandler datatableHandler, OutputHandler outputHandler) throws IOException {
+        String videoName = inputFile.getName();
+
+        int dotIndex = videoName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            videoName = videoName.substring(0, dotIndex);
+        }
+
+        String normalPath = InputHandler.getFileName(outputHandler.GetBaseNormalFilePath());
+        String invertPath = InputHandler.getFileName(outputHandler.GetBaseInvertedFilePath());
+
+        VideoHandler videoHandler = new VideoHandler(inputFile,videoName,normalPath,invertPath,conversionType,datatableHandler,step);
+        videoHandler.IterateOverFrames();
+    }
+
+    public static HashMap<String,String[][]> ConvertImage(Boolean conversionType, File file, int step, DatatableHandler datatableHandler) {
+
+        HashMap<String,String[][]> returnMap = new HashMap<String,String[][]>();
+
+        int[][] brightness = null;
+        String[][] mapped = null;
+        ImageReader imageHandler = new ImageReader(file);
+        brightness = imageHandler.ImageToPixelBrightness(step);
+        if (conversionType!=Boolean.TRUE) {
+            mapped = datatableHandler.ValueTranslation(brightness, false);
+            returnMap.put("normal",mapped);
+        }
+        if (conversionType!=Boolean.FALSE) {
+            mapped = datatableHandler.ValueTranslation(brightness, true);
+            returnMap.put("inverse",mapped);
+        }
+
+        return returnMap;
+    }
+
+    public static void SaveImage(HashMap<String,String[][]> data, OutputHandler outputHandler) {
+
+        for (Map.Entry<String,String[][]> entry : data.entrySet()) {
+            String conversionType = entry.getKey();
+            String[][] conversion = entry.getValue();
+
+            if (conversionType.equals("normal")) {
+                try {
+                    Files.writeString(Path.of(outputHandler.GetNormalFilePath()), ListToString(conversion));
+                } catch (IOException e) {
+                    System.out.println("an error occured while saving to the output file");
+                }
+            } else if (conversionType.equals("inverse")) {
+                try {
+                    Files.writeString(Path.of(outputHandler.GetInvertedFilePath()), ListToString(conversion));
+                } catch (IOException e) {
+                    System.out.println("an error occured while saving to the output file");
+                }
+            }
+        }
     }
 
     public static String ListToString(String[][] input) {

@@ -23,7 +23,7 @@ public class ImageReader {
             image = ImageIO.read(imageFile);
         } catch (IOException e) {
             System.out.printf("Error occured when trying to read image file, %s\n",imageFile.getName());
-            System.exit(0);
+            throw new RuntimeException(e);
         }
 
 
