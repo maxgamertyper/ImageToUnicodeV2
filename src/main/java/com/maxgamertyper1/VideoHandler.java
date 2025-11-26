@@ -1,13 +1,5 @@
 package com.maxgamertyper1;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.jcodec.api.FrameGrab;
 import org.jcodec.api.JCodecException;
 import org.jcodec.common.io.NIOUtils;
@@ -15,85 +7,39 @@ import org.jcodec.common.model.Picture;
 import org.jcodec.scale.AWTUtil;
 
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class VideoHandler {
-    private final File videoFile;
-    private final String fileName;
-    private final String normalPath;
-    private final String invertPath;
-    private final Boolean conversionType;
-    private File normalDir;
-    private File invertDir;
-    private final int step;
-    private final DatatableHandler datatableHandler;
+    private final Config JSONConfig;
 
-    public VideoHandler(File inputFile, String filename, String normalpath, String invertpath, Boolean conversiontype, DatatableHandler DatatableHandler, int Step) {
-        videoFile=inputFile;
-        fileName=filename;
-        normalPath=normalpath;
-        invertPath=invertpath;
-        conversionType = conversiontype;
-        step = Step;
-        datatableHandler = DatatableHandler;
-
-        MakeOutputDirectories();
+    public VideoHandler(Config cfg) {
+        JSONConfig=cfg;
     }
 
     public void MakeOutputDirectories() {
-        if (conversionType!=Boolean.TRUE) {
-            System.out.printf("Saving video frames in %s%s/frame(number).txt%n",invertPath,fileName);
-            invertDir = new File("data/outputs/"+fileName+invertPath);
-            invertDir.mkdirs();
+        String videoName = FileHandler.GetFileName(JSONConfig.ImageOrVideoFile);
+        String invertedFile = FileHandler.GetFileName(JSONConfig.InvertedFileOutput);
+        String normalFile = FileHandler.GetFileName(JSONConfig.NormalFileOutput);
 
-            if (invertDir.exists()) {
-                System.out.println("Created normal directory successfully!");
+        if (JSONConfig.BothBrightnesses) {
+            FileHandler.CheckOrCreateDirectory(FileHandler.FileInOutputDir(JSONConfig,videoName+normalFile));
+            FileHandler.CheckOrCreateDirectory(FileHandler.FileInOutputDir(JSONConfig,videoName+invertedFile));
+        } else {
+            if (JSONConfig.InvertBrighntess) {
+                FileHandler.CheckOrCreateDirectory(FileHandler.FileInOutputDir(JSONConfig,videoName+invertedFile));
             } else {
-                System.out.println("Couldn't create normal output directory!");
-                System.exit(0);
-            }
-        }
-        if (conversionType!=Boolean.FALSE) {
-            System.out.printf("Saving video frames in %s%s/frame(number).txt%n",normalPath,fileName);
-            normalDir = new File("data/outputs/"+fileName+normalPath);
-            normalDir.mkdirs();
-
-            if (normalDir.exists()) {
-                System.out.println("Created normal directory successfully!");
-            } else {
-                System.out.println("Couldn't create normal output directory!");
-                System.exit(0);
+                FileHandler.CheckOrCreateDirectory(FileHandler.FileInOutputDir(JSONConfig,videoName+normalFile));
             }
         }
 
-    }
-
-    public void SaveImage(HashMap<String,String[][]> data,String fileName) {
-
-        for (Map.Entry<String,String[][]> entry : data.entrySet()) {
-            String conversionType = entry.getKey();
-            String[][] conversion = entry.getValue();
-
-            if (conversionType.equals("normal")) {
-                try {
-                    Files.writeString(Path.of(normalDir.getPath()+"/"+fileName), Main.ListToString(conversion));
-                } catch (IOException e) {
-                    System.out.println("an error occured while saving to the output file");
-                }
-            } else if (conversionType.equals("inverse")) {
-                try {
-                    Files.writeString(Path.of(invertDir.getPath()+"/"+fileName), Main.ListToString(conversion));
-                } catch (IOException e) {
-                    System.out.println("an error occured while saving to the output file");
-                }
-            }
-        }
     }
 
     public void IterateOverFrames() {
-
         FrameGrab grab = null;
         try {
-            grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(videoFile));
+            grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(FileHandler.CheckForFileInInputs(JSONConfig,JSONConfig.ImageOrVideoFile)));
         } catch (IOException e) {
             System.out.println("Error occured while reading video file");
             throw new RuntimeException(e);
@@ -101,7 +47,6 @@ public class VideoHandler {
             System.out.println("Invalid video File type!");
             throw new RuntimeException(e);
         }
-
 
         int frameNumber = 0;
         Picture picture;
@@ -115,8 +60,8 @@ public class VideoHandler {
             }
 
             BufferedImage bufferedImage = AWTUtil.toBufferedImage(picture);
-            String currentFrameName = String.format("frame_%04d.png", frameNumber++);
-            File currentFrame = new File("data/", currentFrameName);
+            String currentFrameName = String.format("frame_%d.png", frameNumber++);
+            File currentFrame = new File(JSONConfig.DataDirectory+"/"+JSONConfig.InputDirectory+"/", currentFrameName);
 
             try {
                 ImageIO.write(bufferedImage,"png",currentFrame);
@@ -127,11 +72,16 @@ public class VideoHandler {
 
             System.out.printf("Processing frame: %s%n",frameNumber);
 
-            HashMap<String,String[][]> data= Main.ConvertImage(conversionType,currentFrame,step,datatableHandler);
-            SaveImage(data, InputHandler.getFileName(currentFrameName)+".txt");
+            ImageHandler IH = new ImageHandler(FileHandler.CheckForFileInInputs(JSONConfig,currentFrameName));
+            int[][] ImageBrightness = IH.ImageToPixelBrightness(JSONConfig.DatatableStep);
+
+            String videoName = FileHandler.GetFileName(JSONConfig.ImageOrVideoFile);
+            String invertedFile = FileHandler.GetFileName(JSONConfig.InvertedFileOutput);
+            String normalFile = FileHandler.GetFileName(JSONConfig.NormalFileOutput);
+
+            Main.SaveText(ImageBrightness,FileHandler.FileInOutputDir(JSONConfig,videoName+invertedFile+"/"+FileHandler.GetFileName(currentFrameName)+".txt"),FileHandler.FileInOutputDir(JSONConfig,videoName+normalFile+"/"+FileHandler.GetFileName(currentFrameName)+".txt"));
 
             currentFrame.delete();
         }
-
     }
 }

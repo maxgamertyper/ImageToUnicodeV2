@@ -1,0 +1,91 @@
+{
+    "InputDirectory": {
+        "description": "Where the inputs of the code will go inside of the specified Data directory",
+        "type": "String",
+        "value": "inputs"
+    },
+    "EXAMPLEKEY": {
+        "description": "this key is an example of how this config works, a null value means that the program will ask for your input on the option. You can delete this if you understand the structure",
+        "type": "String",
+        "value": null
+    },
+    "OutputDirectory": {
+        "description": "Where the outputs of the code will go inside of the specified Data directory",
+        "type": "String",
+        "value": "outputs"
+    },
+    "DatatableFile": {
+        "description": "The file that specifies the conversion calculation *should be a json file*, normally named: (fontname)datatable.json *overrules font file conversion if set*",
+        "type": "String",
+        "value": null
+    },
+    "IsImageFile": {
+        "description": "Whether the program will be converting an image file or a video file",
+        "type": "Boolean",
+        "value": null
+    },
+    "DisplayTxtFile": {
+        "description": "The text file where precached videos are displayed",
+        "type": "String",
+        "value": null
+    },
+    "DataDirectory": {
+        "description": "Where the working area of the code will be",
+        "type": "String",
+        "value": "data"
+    },
+    "IsDisplayingPrecached": {
+        "description": "Whether you are loading a video into a file to watch, or generating data",
+        "type": "Boolean",
+        "value": null
+    },
+    "DisplaySpeedFPS": {
+        "description": "The speed at which precached videos are played",
+        "type": "Integer",
+        "value": null
+    },
+    "BothBrightnesses": {
+        "description": "If the code will calculate both brightnesses *inverted and normal, overrides InvertBrightness*",
+        "type": "Boolean",
+        "value": null
+    },
+    "InvertBrighntess": {
+        "description": "If the code will invert the brightness of the image",
+        "type": "Boolean",
+        "value": null
+    },
+    "InvertedFileOutput": {
+        "description": "The file destination of an inverted file (in the outputs directory)",
+        "type": "String",
+        "value": null
+    },
+    "CreatingDatatable": {
+        "description": "Determines if you are creating the datatable from a font file or using an already made one",
+        "type": "Boolean",
+        "value": null
+    },
+    "FontFile": {
+        "description": "The font file that will be converted to a json file for image translation",
+        "type": "String",
+        "value": null
+    },
+    "PrecachedVideoDirectory": {
+        "type": "String",
+        "value": null
+    },
+    "NormalFileOutput": {
+        "description": "The file destination of a normal file (in the outputs directory)",
+        "type": "String",
+        "value": null
+    },
+    "DatatableStep": {
+        "description": "The step size that will be calculated for the datatable file if being calculated. Lower results in more accurate but longer time",
+        "type": "Integer",
+        "value": null
+    },
+    "ImageOrVideoFile": {
+        "description": "The image or video file that will get converted into text",
+        "type": "String",
+        "value": null
+    }
+}

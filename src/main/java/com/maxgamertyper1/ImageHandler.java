@@ -6,10 +6,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class ImageReader {
+public class ImageHandler {
     private final File imageFile;
 
-    public ImageReader(File imagefile) {
+    public ImageHandler(File imagefile) {
         imageFile = imagefile;
     }
 
