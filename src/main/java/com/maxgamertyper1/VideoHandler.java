@@ -37,9 +37,11 @@ public class VideoHandler {
     }
 
     public void IterateOverFrames() {
+        int totalFrames = 0;
         FrameGrab grab = null;
         try {
             grab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(FileHandler.CheckForFileInInputs(JSONConfig,JSONConfig.ImageOrVideoFile)));
+            totalFrames=grab.getVideoTrack().getMeta().getTotalFrames();
         } catch (IOException e) {
             System.out.println("Error occured while reading video file");
             throw new RuntimeException(e);
@@ -51,8 +53,23 @@ public class VideoHandler {
         int frameNumber = 0;
         Picture picture;
 
-        while (true) {
+        File FramesLocation = new File(JSONConfig.DataDirectory+"/"+JSONConfig.InputDirectory+"/TempVideoFrames");
 
+        FileHandler.CheckOrCreateDirectory(FramesLocation);
+
+        System.out.println("Grabbing all video Frames!");
+        System.out.printf("Total frames: %s%n",totalFrames);
+
+        double messageTracker=totalFrames/50d;
+        double nextUpdateFrame = messageTracker;
+
+
+        VideoProgressBar grabbingBar = new VideoProgressBar(totalFrames,"Grabbing Complete");
+        for (int framesthrough=0;framesthrough!=totalFrames;framesthrough++) {
+            if (frameNumber >= nextUpdateFrame) {
+                grabbingBar.UpdateBar(frameNumber);
+                nextUpdateFrame += messageTracker;
+            }
             try {
                 if ((picture = grab.getNativeFrame()) == null) break;
             } catch (IOException e) {
@@ -61,18 +78,37 @@ public class VideoHandler {
 
             BufferedImage bufferedImage = AWTUtil.toBufferedImage(picture);
             String currentFrameName = String.format("frame_%d.png", frameNumber++);
-            File currentFrame = new File(JSONConfig.DataDirectory+"/"+JSONConfig.InputDirectory+"/", currentFrameName);
+            File currentFrame = new File(JSONConfig.DataDirectory + "/" + JSONConfig.InputDirectory + "/TempVideoFrames/", currentFrameName);
 
             try {
-                ImageIO.write(bufferedImage,"png",currentFrame);
+                ImageIO.write(bufferedImage, "png", currentFrame);
             } catch (IOException e) {
-                System.out.printf("Error writing frame %s to data%n",currentFrame);
+                System.out.printf("Error writing frame %s to data%n", currentFrame);
+            }
+        }
+        grabbingBar.UpdateBar(frameNumber);
+
+        System.out.println("\nGrabbed all video Frames!");
+        System.out.println("Translating Frames to text!");
+
+        VideoProgressBar translatingBar = new VideoProgressBar(totalFrames,"Translating Complete");
+        nextUpdateFrame=messageTracker;
+        for (int currentFrameNumber=0;currentFrameNumber!=frameNumber;currentFrameNumber++) {
+            if (currentFrameNumber >= nextUpdateFrame) {
+                translatingBar.UpdateBar(currentFrameNumber);
+                nextUpdateFrame += messageTracker;
             }
 
 
-            System.out.printf("Processing frame: %s%n",frameNumber);
+            String currentFrameName = String.format("frame_%d.png", currentFrameNumber);
+            File currentFrame = new File(JSONConfig.DataDirectory + "/" + JSONConfig.InputDirectory + "/TempVideoFrames/", currentFrameName);
 
-            ImageHandler IH = new ImageHandler(FileHandler.CheckForFileInInputs(JSONConfig,currentFrameName));
+            if (!FileHandler.CheckIfFileExists(currentFrame)) {
+                System.out.printf("Frame: %s not found! %n",currentFrameNumber);
+                continue;
+            }
+
+            ImageHandler IH = new ImageHandler(currentFrame);
             int[][] ImageBrightness = IH.ImageToPixelBrightness(JSONConfig.DatatableStep);
 
             String videoName = FileHandler.GetFileName(JSONConfig.ImageOrVideoFile);
@@ -81,7 +117,16 @@ public class VideoHandler {
 
             Main.SaveText(ImageBrightness,FileHandler.FileInOutputDir(JSONConfig,videoName+invertedFile+"/"+FileHandler.GetFileName(currentFrameName)+".txt"),FileHandler.FileInOutputDir(JSONConfig,videoName+normalFile+"/"+FileHandler.GetFileName(currentFrameName)+".txt"));
 
-            currentFrame.delete();
+            if (!currentFrame.delete()) {
+                System.out.printf("Error deleting translated frame: %s%n",currentFrameNumber);
+            }
+        }
+        translatingBar.UpdateBar(frameNumber);
+        System.out.println();
+
+
+        if (!FramesLocation.delete()) {
+            System.out.printf("Error deleting frame directory: %s%n",FramesLocation.getAbsolutePath());
         }
     }
 }

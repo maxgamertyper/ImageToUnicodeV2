@@ -138,7 +138,7 @@ public class Main {
     }
 
     public static void PrecachedDisplay() {
-        System.out.println("If you are displaying a video, I recommend using EmEditor with auto-reload on");
+        System.out.println("If you are displaying a video, I recommend using EmEditor with auto-reload on or Notepad++");
 
         int framenumber = 0;
         File currentTextFrame = FileHandler.FileInOutputDir(JSONConfig, JSONConfig.PrecachedVideoDirectory+"/"+"frame_"+framenumber+".txt");
