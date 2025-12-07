@@ -41,7 +41,7 @@ public class Config {
         put("IsDisplayingPrecached", new Question("Are you trying to display an already converted video file?","no",new String[]{"yes","no"}));
         put("PrecachedVideoDirectory", new Question("What is the directory where your video is cached? (should be inside outputs)","video"));
         put("DisplayTxtFile", new Question("What is the text file that you are going to watch the display in? (should be inside outputs)","display.txt"));
-        put("DisplaySpeedFPS", new Question("How fast do you want to display the video?(FPS)",10));
+        put("DisplaySpeedFPS", new Question("How fast do you want to display the video?(FPS)",5));
     }};
     public String DataDirectory = "data";
     public String OutputDirectory = "outputs";

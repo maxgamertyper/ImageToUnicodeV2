@@ -13,8 +13,8 @@ public class ImageHandler {
         imageFile = imagefile;
     }
 
-    public static int roundToNearestStep(float input, int step) {
-        return Math.round(input/step) * step;
+    public static int roundToNearestStep(double input, int step) {
+        return (int) Math.round(input / step) * step;
     }
 
     public int[][] ImageToPixelBrightness(int step) {
@@ -40,9 +40,9 @@ public class ImageHandler {
                 final int red = pixelColor.getRed();
                 final int green = pixelColor.getGreen();
                 final int blue = pixelColor.getBlue();
-                final int brightness = (blue+red+green)/3;
+                final double luminance = 0.2126*red + 0.7152*green + 0.0722*blue;
 
-                imagePixelBrightness[pixelYValue][pixelXValue] = roundToNearestStep(brightness,step);
+                imagePixelBrightness[pixelYValue][pixelXValue] = roundToNearestStep(luminance ,step);
             }
         }
 
